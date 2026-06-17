@@ -161,7 +161,7 @@ img{max-width:100%;height:auto}
       <div class="card info">
         <h3>About SPSMUN 2026</h3>
         <p>SPSMUN is the Model United Nations conference hosted by <b>Satluj Public School, Sector 4, Panchkula</b>. This edition — <b>"The Era of Impact"</b> — runs <b>27, 28 &amp; 29 July</b> across ten committees.</p>
-        <div class="chips"><span class="chip">UNSC</span><span class="chip">UNGA</span><span class="chip">UNHRC</span><span class="chip">UNCSW</span><span class="chip">WHO</span><span class="chip">WHO Beginners</span><span class="chip">AIPPM</span><span class="chip">IP</span><span class="chip">IPL</span><span class="chip">The Fame Files</span></div>
+        <div class="chips"><span class="chip">UNSC</span><span class="chip">UNGA</span><span class="chip">UNHRC</span><span class="chip">UNCSW</span><span class="chip">WHO Beginners</span><span class="chip">AIPPM</span><span class="chip">IP</span><span class="chip">IPL</span><span class="chip">The Fame Files</span></div>
         <p class="quote">"Diplomacy is not about being right. It's about doing what's right for a better world."</p>
       </div>
     </div>
@@ -257,11 +257,12 @@ function attachTypeahead(input,list){
  
 let cur=null, rooms=["","",""], myPhone="";
 (async function loadCommittees(){
+  const fallback=["AIPPM","IP","IPL","The Fame Files","UNCSW","UNGA","UNHRC","UNSC","WHO Beginners"];
+  function fill(list){ $("committee").innerHTML='<option value="">Select your committee…</option>'+list.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join(""); }
   try{const r=await api({action:"committees"});
-    if(r&&r.ok&&r.committees.length){
-      $("committee").innerHTML='<option value="">Select your committee…</option>'+r.committees.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join("");
-    } else { $("committee").innerHTML='<option value="">Could not load committees</option>'; }
-  }catch(e){ $("committee").innerHTML='<option value="">Could not load committees</option>'; }
+    if(r&&r.ok&&r.committees&&r.committees.length){ fill(r.committees); }
+    else { fill(fallback); }
+  }catch(e){ fill(fallback); }
 })();
 $("phone").addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,10);});
 $("phone").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click();});
