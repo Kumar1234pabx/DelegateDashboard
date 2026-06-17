@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SPSMUN 2026 · Admin Terminal</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet"><style>
+!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SPSMUN 2026 · Admin Terminal</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet"><style>
 :root{--green-900:#0A211A;--green-850:#0D2B1F;--green-800:#114734;--green-500:#1D9E75;
 --gold:#D4AF37;--gold-light:#E0C989;--gold-deep:#a9842a;--pink:#E85C9A;--pink-soft:#f7a8ce;
 --text:#ece6d6;--text-dim:#b7c4ba;--ok:#2fbf6e;--ok-soft:#9ff0cf;}
@@ -55,7 +55,7 @@ footer{position:relative;z-index:1;text-align:center;padding:26px 16px 36px;colo
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:200;opacity:0;pointer-events:none;
 padding:16px 26px;border-radius:14px;font-family:'Cinzel',serif;font-size:17px;letter-spacing:1px;transition:.3s;box-shadow:0 16px 40px rgba(0,0,0,.5)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.in{background:linear-gradient(180deg,#9bf0c4,var(--ok));color:#05140d}.toast.out{background:linear-gradient(180deg,#ffd98a,var(--gold));color:#241c00}
-
+ 
 .admin-wrap{max-width:860px;margin:0 auto}
 .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .stat{flex:1;min-width:120px;border-radius:12px;padding:14px;background:rgba(0,0,0,.26);border:1px solid rgba(212,175,55,.25);text-align:center}
@@ -80,7 +80,7 @@ padding:16px 26px;border-radius:14px;font-family:'Cinzel',serif;font-size:17px;l
 .annadmin .t{font-family:'Cinzel',serif;color:#fff}.annadmin .b{color:var(--text-dim);font-size:13px;margin-top:2px;white-space:pre-wrap}.annadmin .meta{font-size:11px;color:var(--text-dim);margin-top:4px}
 .del-x{cursor:pointer;color:var(--pink-soft);border:1px solid rgba(232,92,154,.4);border-radius:8px;padding:6px 10px;font-size:12px;background:none;white-space:nowrap}
 .empty{color:var(--text-dim);text-align:center;padding:20px;font-size:14px}
-
+ 
 /* ===== mobile / overflow fixes ===== */
 img{max-width:100%;height:auto}
 .ann,.poll-opt,.card,.result,.annadmin,.daycard{overflow:hidden}
@@ -111,7 +111,7 @@ img{max-width:100%;height:auto}
     <div style="height:14px"></div><button class="btn" id="unlockBtn"><span class="spinner"></span><span class="lbl">Unlock</span></button>
     <div class="msg err" id="gateMsg"></div>
   </div></section>
-
+ 
   <section class="view" id="termView">
     <div class="stats">
       <div class="stat"><div class="n" id="stToday">—</div><div class="l">Active Day</div></div>
@@ -124,14 +124,14 @@ img{max-width:100%;height:auto}
       <div class="atab" data-atab="ann">Announcements</div>
       <div class="atab" data-atab="rooms">Room Allotments</div>
     </div>
-
+ 
     <div class="apanel active" id="a-checkin"><div class="card">
       <h2 class="gold-text" style="font-size:20px">Find &amp; Manage a Delegate</h2>
       <p class="lead">Search by name or phone. Use for lost cards / phones.</p>
       <div class="searchbar"><input id="q" placeholder="Name or phone number"><button class="btn" id="searchBtn"><span class="spinner"></span><span class="lbl">Search</span></button></div>
       <div class="msg err" id="admMsg"></div><div id="results"></div>
     </div></div>
-
+ 
     <div class="apanel" id="a-ann"><div class="card annform">
       <h2 class="gold-text" style="font-size:20px">Post an Announcement</h2>
       <p class="lead">Everyone sees these on their dashboard. Use for lunch, schedule, agendas, polls.</p>
@@ -139,15 +139,18 @@ img{max-width:100%;height:auto}
         <input id="annTitle" placeholder="Title (optional)"></div>
       <textarea id="annBody" placeholder="Message / details (optional for a poll)"></textarea>
       <div id="optWrap" style="display:none;margin-top:12px">
-        <label class="fld">Poll options (one per line)</label>
-        <textarea id="annOptions" placeholder="UN&#10;UNJ&#10;WHO&#10;UNHRC"></textarea>
+        <label class="fld">Poll options (fill at least 2)</label>
+        <input id="opt1" style="margin-bottom:8px" placeholder="Option 1">
+        <input id="opt2" style="margin-bottom:8px" placeholder="Option 2">
+        <input id="opt3" style="margin-bottom:8px" placeholder="Option 3 (optional)">
+        <input id="opt4" placeholder="Option 4 (optional)">
       </div>
       <div style="height:12px"></div><button class="btn" id="postBtn"><span class="spinner"></span><span class="lbl">Post Announcement</span></button>
       <div class="msg" id="annMsg"></div>
       <h2 class="gold-text" style="font-size:18px;margin:20px 0 6px">Live announcements</h2>
       <div id="annAdminList"></div>
     </div></div>
-
+ 
     <div class="apanel" id="a-rooms"><div class="card">
       <h2 class="gold-text" style="font-size:20px">Room Allotments</h2>
       <p class="lead">Set each committee's room per day. Saved instantly to every dashboard.</p>
@@ -159,9 +162,9 @@ img{max-width:100%;height:auto}
 </div>
 <div class="toast" id="toast"></div>
 <footer>SPSMUN 2026 · Admin Terminal · authorised staff only</footer>
-
+ 
 <script>
-
+ 
 const API_URL="https://script.google.com/macros/s/AKfycbzrjDNVtSAVmsYlFfv4wF2QYLe8Rj61iV9Q9hXybp9p_OyZhjiGtQYOeyVSfC3W_0REgg/exec";
 const EVENT_DAYS=["2026-07-27","2026-07-28","2026-07-29"];
 const DAY_LABELS=["Day 1 · 27 Jul","Day 2 · 28 Jul","Day 3 · 29 Jul"];
@@ -201,8 +204,8 @@ function attachTypeahead(input,list){
  document.addEventListener("click",e=>{if(!list.contains(e.target)&&e.target!==input)close();});
  return {get(){if(picked)return picked;const d=input.value.replace(/\D/g,"");return d.length===10?d:"";},clear(){picked="";input.value="";}};
 }
-
-
+ 
+ 
 let PASS="";
 $("pass").addEventListener("keydown",e=>{if(e.key==="Enter")$("unlockBtn").click();});
 $("unlockBtn").addEventListener("click",async()=>{const p=$("pass").value;hideMsg($("gateMsg"));
@@ -214,12 +217,12 @@ $("unlockBtn").addEventListener("click",async()=>{const p=$("pass").value;hideMs
 function showStats(r){$("stToday").textContent=r.today?("Day "+r.today):"—";$("stIn").textContent=r.checkedInToday;$("stOut").textContent=r.checkedOutToday;$("stTotal").textContent=r.totalDelegates;}
 async function refreshStats(){try{const r=await api({action:"stats",pass:PASS});if(r&&r.ok)showStats(r);}catch(e){}}
 function toast(t,kind){const el=$("toast");el.textContent=t;el.className="toast "+kind+" show";setTimeout(()=>el.className="toast "+kind,1600);}
-
+ 
 document.querySelectorAll(".atab").forEach(t=>t.addEventListener("click",()=>{
  document.querySelectorAll(".atab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".apanel").forEach(x=>x.classList.remove("active"));
  t.classList.add("active");$("a-"+t.dataset.atab).classList.add("active");
  if(t.dataset.atab==="rooms")loadRooms();if(t.dataset.atab==="ann")loadAnnAdmin();}));
-
+ 
 /* check-in/out */
 $("q").addEventListener("keydown",e=>{if(e.key==="Enter")$("searchBtn").click();});
 $("searchBtn").addEventListener("click",async()=>{const q=$("q").value.trim();hideMsg($("admMsg"));
@@ -236,19 +239,19 @@ async function adminMark(phone,type,i){const day=$("day-"+i).value;
  try{const r=await api({action:type==="In"?"checkin":"checkout",phone,day,by:"Admin"});
   if(r&&r.ok){$("att-"+i).innerHTML=attHtml(r.attendance);toast("Checked "+type+" · Day "+day+" · "+r.time,type==="In"?"in":"out");refreshStats();}
   else toast((r&&r.error)||"Failed","out");}catch(e){toast(e.message,"out");}}
-
+ 
 /* announcements */
 $("annType").addEventListener("change",()=>{$("optWrap").style.display=$("annType").value==="Poll"?"block":"none";});
 $("postBtn").addEventListener("click",async()=>{const type=$("annType").value,title=$("annTitle").value.trim(),body=$("annBody").value.trim();hideMsg($("annMsg"));
  let options="";
- if(type==="Poll"){const opts=$("annOptions").value.split("\n").map(s=>s.trim()).filter(Boolean);
+ if(type==="Poll"){const opts=[$("opt1").value,$("opt2").value,$("opt3").value,$("opt4").value].map(s=>s.trim()).filter(Boolean);
    if(!title){showMsg($("annMsg"),"Give the poll a question in the Title field.","err");return;}
-   if(opts.length<2){showMsg($("annMsg"),"Add at least two poll options (one per line).","err");return;}
+   if(opts.length<2){showMsg($("annMsg"),"Fill in at least two options.","err");return;}
    options=opts.join("|");}
  else if(!title&&!body){showMsg($("annMsg"),"Add a title or message.","err");return;}
  loading($("postBtn"),true);
  try{const r=await api({action:"postann",pass:PASS,type,title,body,options});
-  if(r&&r.ok){showMsg($("annMsg"),"\u2713 Posted. Delegates can see it now.","ok");$("annTitle").value="";$("annBody").value="";$("annOptions").value="";loadAnnAdmin();}
+  if(r&&r.ok){showMsg($("annMsg"),"\u2713 Posted. Delegates can see it now.","ok");$("annTitle").value="";$("annBody").value="";$("opt1").value="";$("opt2").value="";$("opt3").value="";$("opt4").value="";loadAnnAdmin();}
   else showMsg($("annMsg"),(r&&r.error)||"Failed.","err");}catch(e){showMsg($("annMsg"),e.message,"err");}finally{loading($("postBtn"),false);}});
 async function loadAnnAdmin(){try{const r=await api({action:"announcements"});
  if(r&&r.ok&&r.announcements.length){$("annAdminList").innerHTML=r.announcements.map(a=>{
@@ -257,7 +260,7 @@ async function loadAnnAdmin(){try{const r=await api({action:"announcements"});
    return '<div class="annadmin"><div><div class="t">'+(a.title?esc(a.title):'('+esc(a.type)+')')+'</div><div class="b">'+esc(a.body)+'</div>'+extra+'<div class="meta">'+esc(a.type)+' · '+esc(a.ts)+'</div></div><button class="del-x" onclick="delAnn(\''+esc(a.id)+'\')">Delete</button></div>';}).join("");}
  else $("annAdminList").innerHTML='<div class="empty">No announcements yet.</div>';}catch(e){}}
 async function delAnn(id){try{const r=await api({action:"delann",pass:PASS,id});if(r&&r.ok){toast("Deleted","out");loadAnnAdmin();}else toast((r&&r.error)||"Failed","out");}catch(e){toast(e.message,"out");}}
-
+ 
 /* rooms */
 async function loadRooms(){try{const r=await api({action:"getcommittees",pass:PASS});
  if(r&&r.ok){$("roomRows").innerHTML=r.committees.map((c,i)=>'<div class="roomrow"><div class="cn">'+esc(c.committee)+'</div>'+
@@ -265,5 +268,5 @@ async function loadRooms(){try{const r=await api({action:"getcommittees",pass:PA
  else $("roomRows").innerHTML='<div class="empty">'+((r&&r.error)||"Failed")+'</div>';}catch(e){$("roomRows").innerHTML='<div class="empty">'+e.message+'</div>';}}
 async function saveRoom(el){const committee=el.dataset.c,day=el.dataset.d,room=el.value.trim();
  try{const r=await api({action:"setroom",pass:PASS,committee,day,room});if(r&&r.ok){el.style.borderColor="rgba(47,191,110,.7)";toast("Saved "+committee+" Day"+day,"in");setTimeout(()=>el.style.borderColor="",1200);}else toast((r&&r.error)||"Failed","out");}catch(e){toast(e.message,"out");}}
-
+ 
 </script></body></html>
