@@ -256,9 +256,9 @@ function attachTypeahead(input,list){
 
 
 let cur=null, rooms=["","",""], myPhone="", annData=[];
-function saveSess(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-function loadSess(k){try{var x=localStorage.getItem(k);return x?JSON.parse(x):null;}catch(e){return null;}}
-function clrSess(k){try{localStorage.removeItem(k);}catch(e){}}
+function saveSess(k,v){try{sessionStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function loadSess(k){try{var x=sessionStorage.getItem(k);return x?JSON.parse(x):null;}catch(e){return null;}}
+function clrSess(k){try{sessionStorage.removeItem(k);}catch(e){}}
 (async function loadCommittees(){
   const fallback=["AIPPM","IP","IPL","The Fame Files","UNCSW","UNGA","UNHRC","UNSC","WHO Beginners"];
   function fill(list){ $("committee").innerHTML='<option value="">Select your committee…</option>'+list.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join(""); }
@@ -275,12 +275,12 @@ $("loginBtn").addEventListener("click",async()=>{
   if(phone.length!==10){showMsg($("loginMsg"),"Please enter your 10-digit phone number.","err");return;}
   loading($("loginBtn"),true);
   try{const r=await api({action:"lookup",phone,committee});
-    if(r&&r.ok){cur=r;myPhone=phone;saveSess("spsmun_delegate",{committee,phone});renderDash(r);loadAnnouncements();}
+    if(r&&r.ok){cur=r;myPhone=phone;saveSess("spsmun_delegate",{committee,phone,data:r});renderDash(r);loadAnnouncements();}
     else showMsg($("loginMsg"),(r&&r.error)||"Committee and phone number don't match.","err");
   }catch(e){showMsg($("loginMsg"),e.message,"err");}finally{loading($("loginBtn"),false);}
 });
 
-function renderDash(r){
+function renderDash(r,quiet){
   const d=r.delegate;
   const name=field(d,"Name"),cls=field(d,"Class"),sec=field(d,"Section"),comm=field(d,"Committee"),port=field(d,"Portfolio");
   $("dName").textContent=name||"Delegate";
@@ -304,7 +304,7 @@ function renderDash(r){
     '<div class="io"><span class="lab">Check-out</span><span class="val '+(outV?'set':'miss')+'">'+(outV?esc(outV):'—')+'</span></div></div>';}
   $("dayCards").innerHTML=html;
   $("navState").textContent="Logged In";
-  $("loginView").classList.remove("active");$("dashView").classList.add("active");window.scrollTo({top:0,behavior:"smooth"});
+  if(!quiet){$("loginView").classList.remove("active");$("dashView").classList.add("active");window.scrollTo({top:0,behavior:"smooth"});}
 }
 
 function renderAnn(){ $("annList").innerHTML = annData.length ? annData.map(annHtml).join("") : '<div class="empty">No announcements yet. Check back soon.</div>'; }
@@ -349,16 +349,19 @@ $("logoutBtn").addEventListener("click",()=>{cur=null;myPhone="";annData=[];clrS
   document.querySelectorAll(".tab").forEach((x,i)=>x.classList.toggle("active",i===0));
   document.querySelectorAll(".panel").forEach((x,i)=>x.classList.toggle("active",i===0));window.scrollTo({top:0,behavior:"smooth"});});
 
-/* keep delegates logged in across refresh, and auto-refresh announcements */
-(async function restore(){
+/* remove the old cross-device storage that caused the wrong-account bug */
+try{localStorage.removeItem("spsmun_delegate");}catch(e){}
+/* refresh keeps THIS tab on the dashboard; a fresh tab / QR scan starts at login */
+(function restore(){
   const s=loadSess("spsmun_delegate");
-  if(s&&s.phone&&s.committee){
-    try{const r=await api({action:"lookup",phone:s.phone,committee:s.committee});
-      if(r&&r.ok){cur=r;myPhone=s.phone;renderDash(r);loadAnnouncements();}
-      else clrSess("spsmun_delegate");
-    }catch(e){}
+  if(s&&s.phone&&s.committee&&s.data){
+    cur=s.data; myPhone=s.phone; renderDash(s.data); loadAnnouncements();
+    api({action:"lookup",phone:s.phone,committee:s.committee}).then(r=>{
+      if(r&&r.ok){cur=r;saveSess("spsmun_delegate",{committee:s.committee,phone:s.phone,data:r});renderDash(r,true);}
+    }).catch(()=>{});
   }
 })();
-setInterval(()=>{ if(cur && $("p-ann").classList.contains("active")) loadAnnouncements(); }, 15000);
+/* announcements appear on their own, no reload needed */
+setInterval(()=>{ if(cur && $("p-ann").classList.contains("active")) loadAnnouncements(); }, 8000);
 
 </script></body></html>
