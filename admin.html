@@ -143,7 +143,9 @@ img{max-width:100%;height:auto}
         <input id="opt1" style="margin-bottom:8px" placeholder="Option 1">
         <input id="opt2" style="margin-bottom:8px" placeholder="Option 2">
         <input id="opt3" style="margin-bottom:8px" placeholder="Option 3 (optional)">
-        <input id="opt4" placeholder="Option 4 (optional)">
+        <input id="opt4" style="margin-bottom:12px" placeholder="Option 4 (optional)">
+        <label class="fld">How long should the poll stay open? (minutes)</label>
+        <input id="annMinutes" type="number" min="1" step="1" value="5" placeholder="e.g. 5">
       </div>
       <div style="height:12px"></div><button class="btn" id="postBtn"><span class="spinner"></span><span class="lbl">Post Announcement</span></button>
       <div class="msg" id="annMsg"></div>
@@ -165,7 +167,7 @@ img{max-width:100%;height:auto}
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbzrRj2lYsG8Hpj1m9elz4dwjchHj80b_n6-7KIArQqEYsWeTVnhjSOFlfILMRvmnU__qQ/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbzWgxyrR5muAssShZiMsyv3gigyY1J5zyosXmm_sDJh4t9vKSG4MN3QZFjfIkSIkFGQ2g/exec";
 const EVENT_DAYS=["2026-07-27","2026-07-28","2026-07-29"];
 const DAY_LABELS=["Day 1 · 27 Jul","Day 2 · 28 Jul","Day 3 · 29 Jul"];
 function api(params){return new Promise((resolve,reject)=>{
@@ -247,20 +249,21 @@ async function adminMark(phone,type,i){const day=$("day-"+i).value;
 /* announcements */
 $("annType").addEventListener("change",()=>{$("optWrap").style.display=$("annType").value==="Poll"?"block":"none";});
 $("postBtn").addEventListener("click",async()=>{const type=$("annType").value,title=$("annTitle").value.trim(),body=$("annBody").value.trim();hideMsg($("annMsg"));
- let options="";
+ let options="",minutes="";
  if(type==="Poll"){const opts=[$("opt1").value,$("opt2").value,$("opt3").value,$("opt4").value].map(s=>s.trim()).filter(Boolean);
    if(!title){showMsg($("annMsg"),"Give the poll a question in the Title field.","err");return;}
    if(opts.length<2){showMsg($("annMsg"),"Fill in at least two options.","err");return;}
+   minutes=parseFloat($("annMinutes").value); if(!(minutes>0)){showMsg($("annMsg"),"Set how many minutes the poll stays open.","err");return;}
    options=opts.join("|");}
  else if(!title&&!body){showMsg($("annMsg"),"Add a title or message.","err");return;}
  loading($("postBtn"),true);
- try{const r=await api({action:"postann",pass:PASS,type,title,body,options});
+ try{const r=await api({action:"postann",pass:PASS,type,title,body,options,minutes});
   if(r&&r.ok){showMsg($("annMsg"),"\u2713 Posted. Delegates can see it now.","ok");$("annTitle").value="";$("annBody").value="";$("opt1").value="";$("opt2").value="";$("opt3").value="";$("opt4").value="";["annTitle","annBody","opt1","opt2","opt3","opt4"].forEach(id=>clrSess("form_"+id));loadAnnAdmin();}
   else showMsg($("annMsg"),(r&&r.error)||"Failed.","err");}catch(e){showMsg($("annMsg"),e.message,"err");}finally{loading($("postBtn"),false);}});
 async function loadAnnAdmin(){try{const r=await api({action:"announcements"});
  if(r&&r.ok&&r.announcements.length){$("annAdminList").innerHTML=r.announcements.map(a=>{
    let extra="";
-   if(a.type==="Poll"&&a.options&&a.options.length){extra='<div class="b">'+a.options.map(o=>esc(o.text)+": "+o.count).join("  ·  ")+"  ("+(a.total||0)+" votes)</div>";}
+   if(a.type==="Poll"&&a.options&&a.options.length){var st=(a.open!==false && (!a.closesAt||Date.now()<a.closesAt))?(a.closesAt?(" · closes "+new Date(a.closesAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false})):" · open"):" · closed";extra='<div class="b">'+a.options.map(o=>esc(o.text)+": "+o.count).join("  ·  ")+"  ("+(a.total||0)+" votes"+st+")</div>";}
    return '<div class="annadmin"><div><div class="t">'+(a.title?esc(a.title):'('+esc(a.type)+')')+'</div><div class="b">'+esc(a.body)+'</div>'+extra+'<div class="meta">'+esc(a.type)+' · '+esc(a.ts)+'</div></div><button class="del-x" onclick="delAnn(\''+esc(a.id)+'\')">Delete</button></div>';}).join("");}
  else $("annAdminList").innerHTML='<div class="empty">No announcements yet.</div>';}catch(e){}}
 async function delAnn(id){try{const r=await api({action:"delann",pass:PASS,id});if(r&&r.ok){toast("Deleted","out");loadAnnAdmin();}else toast((r&&r.error)||"Failed","out");}catch(e){toast(e.message,"out");}}
@@ -282,7 +285,7 @@ async function saveRoom(el){const committee=el.dataset.c,day=el.dataset.d,room=e
     else { PASS=""; clrSess("spsmun_admin"); $("termView").classList.remove("active"); $("gateView").classList.add("active"); $("navState").textContent="Locked"; }
   }catch(e){}
 })();
-["annType","annTitle","annBody","opt1","opt2","opt3","opt4"].forEach(id=>{
+["annType","annTitle","annBody","opt1","opt2","opt3","opt4","annMinutes"].forEach(id=>{
   const el=$(id); if(!el) return;
   const saved=loadSess("form_"+id);
   if(saved!=null && saved!==""){ el.value=saved; if(id==="annType") $("optWrap").style.display=(el.value==="Poll")?"block":"none"; }
