@@ -89,7 +89,12 @@ h1.title{font-family:'Cinzel',serif;font-weight:800;text-align:center;line-heigh
 .poll-opt.mine{border-color:var(--pink);background:rgba(232,92,154,.08)}
 .po-bar{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(212,175,55,.22),rgba(232,92,154,.14));z-index:0;transition:width .4s ease}
 .po-t,.po-c{position:relative;z-index:1}.po-t{color:#fff;font-weight:500}.po-c{color:var(--gold-light);font-family:'Cinzel',serif;font-size:15px}
-.poll-total{font-size:12px;color:var(--text-dim);text-align:center;margin-top:4px}
+.poll-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.poll-total{font-size:12px;color:var(--text-dim)}
+.poll-timer{font-size:12px;color:var(--gold-light);font-weight:600}
+.poll-opt.locked{cursor:default}
+.poll.closed .poll-opt{pointer-events:none;opacity:.9}
+.poll.closed .poll-timer{color:var(--pink-soft)}
 /* map / room */
 .room-card{text-align:center}
 .welcome{font-family:'Cinzel',serif;font-size:clamp(20px,5vw,32px);animation:riseIn .9s ease both}.welcome .nm{color:var(--gold-light)}
@@ -313,30 +318,52 @@ async function loadAnnouncements(){
     if(r&&r.ok){annData=r.announcements||[];renderAnn();}
   }catch(e){ if(!annData.length) $("annList").innerHTML='<div class="empty">Couldn\'t load announcements.</div>'; }
 }
+function fmtCountdown(s){const m=Math.floor(s/60),ss=s%60;return m+':'+(ss<10?'0':'')+ss;}
+function pollStatus(a){
+  const open = !a.closesAt || Date.now()<a.closesAt;
+  if(!open) return a.myChoice?'Poll closed \u00b7 you voted':'Poll closed';
+  const cd = a.closesAt? ('Closes in '+fmtCountdown(Math.max(0,Math.floor((a.closesAt-Date.now())/1000)))) : '';
+  if(a.myChoice) return 'You voted'+(cd?'  \u00b7  '+cd:'');
+  return cd || 'Tap an option to vote';
+}
 function annHtml(a){
   const ty=["Update","Agenda","Poll"].indexOf(a.type)>-1?a.type:"Update";
   let body=(a.body?'<div class="b">'+esc(a.body)+'</div>':'');
   if(a.type==="Poll"&&a.options&&a.options.length){
     const total=a.total||0;
-    body+='<div class="poll">'+a.options.map(o=>{const pct=total?Math.round(o.count*100/total):0;const mine=a.myChoice===o.text;
-      return '<div class="poll-opt'+(mine?' mine':'')+'" onclick="vote(\''+esc(a.id)+'\',this)" data-opt="'+esc(o.text)+'"><div class="po-bar" style="width:'+pct+'%"></div><span class="po-t">'+esc(o.text)+(mine?'  \u2713':'')+'</span><span class="po-c">'+o.count+'</span></div>';
-    }).join("")+'<div class="poll-total">'+total+' vote'+(total===1?'':'s')+(a.myChoice?'  \u00b7  you voted (tap to change)':'  \u00b7  tap an option to vote')+'</div></div>';
+    const open = !a.closesAt || Date.now()<a.closesAt;
+    const canVote = open && !a.myChoice;
+    body+='<div class="poll'+(open?'':' closed')+'"'+(a.closesAt?' data-closes="'+a.closesAt+'"':'')+(a.myChoice?' data-voted="1"':'')+'>'+a.options.map(o=>{
+      const pct=total?Math.round(o.count*100/total):0;const mine=a.myChoice===o.text;
+      return '<div class="poll-opt'+(mine?' mine':'')+(canVote?'':' locked')+'"'+(canVote?' onclick="vote(\''+esc(a.id)+'\',this)"':'')+' data-opt="'+esc(o.text)+'"><div class="po-bar" style="width:'+pct+'%"></div><span class="po-t">'+esc(o.text)+(mine?'  \u2713':'')+'</span><span class="po-c">'+o.count+'</span></div>';
+    }).join("")+'<div class="poll-foot"><span class="poll-total">'+total+' vote'+(total===1?'':'s')+'</span><span class="poll-timer">'+pollStatus(a)+'</span></div></div>';
   }
   return '<div class="ann"><div class="top"><span class="badge '+ty+'">'+esc(a.type)+'</span><span class="ts">'+esc(a.ts)+'</span></div>'+(a.title?'<div class="t">'+esc(a.title)+'</div>':'')+body+'</div>';
 }
 async function vote(pollId,el){
   const opt=el.getAttribute('data-opt');
   const a=annData.find(x=>x.id===pollId); if(!a||!a.options)return;
-  if(a.myChoice!==opt){
-    if(a.myChoice){const prev=a.options.find(o=>o.text===a.myChoice);if(prev&&prev.count>0)prev.count--;}
-    else {a.total=(a.total||0)+1;}
-    const c=a.options.find(o=>o.text===opt);if(c)c.count++;
-    a.myChoice=opt; renderAnn();
-  }
+  const open = !a.closesAt || Date.now()<a.closesAt;
+  if(!open || a.myChoice) return;                 // no voting after close, and no re-vote
+  // optimistic: count it once, lock it
+  a.total=(a.total||0)+1;
+  const c=a.options.find(o=>o.text===opt); if(c)c.count++;
+  a.myChoice=opt; renderAnn();
   try{const r=await api({action:"vote",pollId,option:opt,phone:myPhone});
     if(r&&r.ok){ if(r.counts)a.options.forEach(o=>o.count=r.counts[o.text]||0); a.total=r.total; a.myChoice=r.myChoice; renderAnn(); }
-  }catch(e){}
+    else { if(c&&c.count>0)c.count--; a.total=Math.max(0,(a.total||1)-1); a.myChoice=""; renderAnn(); }
+  }catch(e){ if(c&&c.count>0)c.count--; a.total=Math.max(0,(a.total||1)-1); a.myChoice=""; renderAnn(); }
 }
+/* live countdown for open polls; auto-locks when time runs out */
+setInterval(()=>{
+  document.querySelectorAll('.poll[data-closes]').forEach(el=>{
+    const closes=+el.getAttribute('data-closes'); const voted=el.getAttribute('data-voted')==='1';
+    const span=el.querySelector('.poll-timer'); if(!span)return;
+    const rem=Math.floor((closes-Date.now())/1000);
+    if(rem>0){ span.textContent=(voted?'You voted  \u00b7  ':'')+'Closes in '+fmtCountdown(rem); }
+    else if(!el.classList.contains('closed')){ span.textContent=voted?'Poll closed  \u00b7  you voted':'Poll closed'; el.classList.add('closed'); el.querySelectorAll('.poll-opt').forEach(o=>{o.classList.add('locked');o.onclick=null;o.removeAttribute('onclick');}); }
+  });
+},1000);
 
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
